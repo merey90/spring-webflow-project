@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/webflow
+        http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd"
+	start-state="registerUserForm">
+	
+	<input name="user" />
+	
+	<view-state id="registerUserForm" view="register" model="user">
+		<transition on="create" to="actionRegisterUser"/>
+		<transition on="cancel" to="end" validate="false"/>
+	</view-state>
+
+	<action-state id="actionRegisterUser">
+		<evaluate expression="userService.registerUser(user, flowRequestContext)"/>
+		<transition on="success" to="userCreated" />
+		<transition on="400n" to="registerUserForm" />
+		<transition on="400p" to="registerUserForm" />
+		<transition on-exception="ru.javabegin.training.springwebflow.exceptions.UserExistException" to="registerUserForm" />
+		<transition on="failed" to="registerUserForm" />
+	</action-state>
+	
+	<end-state id="userCreated">
+		<output name="user"/>
+	</end-state>
+	
+	<end-state id="end"/>
+
+	<global-transitions>
+		<transition on-exception="java.lang.Exception" to="registerUserForm"/>
+	</global-transitions>
+
+</flow>

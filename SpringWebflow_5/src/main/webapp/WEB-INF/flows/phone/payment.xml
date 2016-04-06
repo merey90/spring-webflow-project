@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/webflow
+        http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd"
+        start-state="phonePaymentForm">
+
+	<var name="phonePayment" class="ru.javabegin.training.springwebflow.objects.PhonePayment" />
+	<var name="otpModel" class="ru.javabegin.training.springwebflow.objects.otp"/>
+
+	<view-state id="phonePaymentForm" view="phonePaymentForm" model="phonePayment">
+		<on-render>
+			<evaluate expression="phonePaymentService.getCreditCards()" result="viewScope.creditCards"/>
+		</on-render>
+		<transition on="submit" to="otpState"/>
+		<transition on="cancel" to="end" validate="false"/>
+	</view-state>
+	
+	<view-state id="otpState" view="otp" model="otpModel">
+		<on-render>
+			<evaluate expression="phonePaymentService.sendNewOtp()" result="viewScope.otp"/>
+		</on-render>
+		<transition on="resend" to="otpState"/>
+		<transition on="cancel" to="phonePaymentForm"/>
+		<transition on="submit" to="verifyOtp"/>
+	</view-state>
+	
+	<action-state id="verifyOtp">
+		<evaluate expression="phonePaymentService.verifyOtp(otpModel, phonePayment)"/>
+		<transition on="wrong" to="otpState"/>
+		<transition on="accepted" to="congratsState"/>
+	</action-state>
+	
+	<end-state id="congratsState" view="congrats">
+		<on-entry>
+			<evaluate expression="phonePaymentService.getPhoneInfo(phonePayment.phone)" result = "flashScope.phoneInfo"/>
+		</on-entry>
+	</end-state>
+	
+	<end-state id="end" view="index"/>
+
+</flow>
